@@ -25,7 +25,7 @@ const Cart = lazy(() => import("./pages/cart"));
 const Wishlist = lazy(() => import("./pages/wishlist"));
 const Profile = lazy(() => import("./pages/profile"));
 const Checkout = lazy(() => import("./pages/checkout"));
-
+import AuthCheck from "./components/AuthCheck";
 // Upload Components (Not Lazy Loaded)
 import UploadPickles from "./components/uploadpickles";
 import UploadPapads from "./components/uploadpapad";
@@ -45,6 +45,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Navbar />
+        <AuthCheck/>
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
             {/* Public Routes */}

@@ -37,7 +37,6 @@ const Wishlist = () => {
     }
   };
 
-  // Run fetchWishlist when the component mounts
   useEffect(() => {
     fetchWishlist();
   }, []);
@@ -48,7 +47,6 @@ const Wishlist = () => {
     if (!user) return alert("Please log in to add to cart.");
 
     try {
-      // Add item to the cart
       await addDoc(collection(db, "cart"), {
         ...item,
         userId: user.uid,
@@ -56,22 +54,23 @@ const Wishlist = () => {
       });
       alert("Item added to cart.");
 
-      // Optionally, remove item from wishlist after adding to cart
-      await removeFromWishlist(item.id); // Remove from wishlist if added to cart
+      await removeFromWishlist(item.id, item.userId); // Remove from wishlist after adding to cart
     } catch (error) {
       console.error("Error adding to cart:", error);
     }
   };
 
   // Handle removing item from wishlist
-  const removeFromWishlist = async (id) => {
+  const removeFromWishlist = async (id, userId) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser || currentUser.uid !== userId) {
+      alert("You don't have permission to delete this item.");
+      return;
+    }
+
     try {
-      // Log the ID to check if it's correct
       console.log("Removing item with ID:", id);
-      
-      // Remove item from Firestore wishlist collection
       await deleteDoc(doc(db, "wishlist", id));
-      // Update state to reflect removal from wishlist
       setWishlistItems((prev) => prev.filter((item) => item.id !== id));
       alert("Item removed from wishlist.");
     } catch (error) {
@@ -99,7 +98,7 @@ const Wishlist = () => {
                 <div className="button-group">
                   <button
                     className="product-btn cart-btn"
-                    onClick={() => removeFromWishlist(item.id)}
+                    onClick={() => removeFromWishlist(item.id, item.userId)}
                   >
                     Remove
                   </button>
