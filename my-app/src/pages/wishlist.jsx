@@ -9,73 +9,102 @@ import {
   doc,
   query,
   where,
+  serverTimestamp,
+  getDoc
 } from "firebase/firestore";
 import "../styles/pickles.css";
 
 const Wishlist = () => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [activeId, setActiveId] = useState(null);
   const auth = getAuth();
 
-  // Fetch wishlist items from Firebase Firestore
   const fetchWishlist = async () => {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      setError("Please login to view wishlist");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const q = query(collection(db, "wishlist"), where("userId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const items = querySnapshot.docs.map((doc) => ({
+      setLoading(true);
+      const q = query(
+        collection(db, "wishlist"),
+        where("userId", "==", user.uid)
+      );
+      const snapshot = await getDocs(q);
+      setWishlistItems(snapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
-      }));
-      setWishlistItems(items);
-    } catch (error) {
-      console.error("Error fetching wishlist:", error);
+        ...doc.data()
+      })));
+      setError("");
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError("Failed to load wishlist");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchWishlist();
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (user) fetchWishlist();
+      else setWishlistItems([]);
+    });
+    return unsubscribe;
   }, []);
 
-  // Handle adding item to cart
-  const handleAddToCart = async (item) => {
-    const user = auth.currentUser;
-    if (!user) return alert("Please log in to add to cart.");
-
-    try {
-      await addDoc(collection(db, "cart"), {
-        ...item,
-        userId: user.uid,
-        addedAt: new Date(),
-      });
-      alert("Item added to cart.");
-
-      await removeFromWishlist(item.id, item.userId); // Remove from wishlist after adding to cart
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-    }
+  const verifyOwnership = async (collectionName, docId) => {
+    const docRef = doc(db, collectionName, docId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() && docSnap.data().userId === auth.currentUser?.uid;
   };
 
-  // Handle removing item from wishlist
-  const removeFromWishlist = async (id, userId) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser || currentUser.uid !== userId) {
-      alert("You don't have permission to delete this item.");
+  const handleAddToCart = async (item) => {
+    if (!auth.currentUser) {
+      setError("Please login first");
       return;
     }
 
+    setActiveId(item.id);
     try {
-      console.log("Removing item with ID:", id);
-      await deleteDoc(doc(db, "wishlist", id));
-      setWishlistItems((prev) => prev.filter((item) => item.id !== id));
-      alert("Item removed from wishlist.");
-    } catch (error) {
-      console.error("Failed to remove item from wishlist:", error);
-      alert("Failed to remove item. Please try again.");
+      // Verify item belongs to user
+      if (!(await verifyOwnership("wishlist", item.id))) {
+        throw new Error("Item ownership verification failed");
+      }
+
+      await addDoc(collection(db, "cart"), {
+        ...item,
+        userId: auth.currentUser.uid,
+        addedAt: serverTimestamp()
+      });
+
+      await removeFromWishlist(item.id);
+    } catch (err) {
+      console.error("Operation failed:", err);
+      setError(err.message || "Operation failed");
+    } finally {
+      setActiveId(null);
+    }
+  };
+
+  const removeFromWishlist = async (itemId) => {
+    setActiveId(itemId);
+    try {
+      if (!(await verifyOwnership("wishlist", itemId))) {
+        throw new Error("Not authorized to remove this item");
+      }
+
+      await deleteDoc(doc(db, "wishlist", itemId));
+      setWishlistItems(prev => prev.filter(item => item.id !== itemId));
+    } catch (err) {
+      console.error("Deletion failed:", err);
+      setError(err.message);
+    } finally {
+      setActiveId(null);
     }
   };
 
@@ -83,6 +112,14 @@ const Wishlist = () => {
     <div className="page-wrapper">
       <div className="page-content product-container">
         <h2>Your Wishlist</h2>
+        
+        {error && (
+          <div className="error-message">
+            {error}
+            <button onClick={() => setError("")}>✕</button>
+          </div>
+        )}
+
         {loading ? (
           <p>Loading...</p>
         ) : wishlistItems.length === 0 ? (
@@ -97,16 +134,18 @@ const Wishlist = () => {
                 <p className="product-price">₹{item.price}</p>
                 <div className="button-group">
                   <button
-                    className="product-btn cart-btn"
-                    onClick={() => removeFromWishlist(item.id, item.userId)}
+                    className={`product-btn cart-btn ${activeId === item.id ? "disabled" : ""}`}
+                    onClick={() => removeFromWishlist(item.id)}
+                    disabled={activeId === item.id}
                   >
-                    Remove
+                    {activeId === item.id ? "Processing..." : "Remove"}
                   </button>
                   <button
-                    className="product-btn buy-now-btn"
+                    className={`product-btn buy-now-btn ${activeId === item.id ? "disabled" : ""}`}
                     onClick={() => handleAddToCart(item)}
+                    disabled={activeId === item.id}
                   >
-                    Add to Cart
+                    {activeId === item.id ? "Adding..." : "Add to Cart"}
                   </button>
                 </div>
               </div>

@@ -55,6 +55,7 @@ function App() {
             <Route path="/ForgotPassword" element={<ForgotPassword />} />
             <Route path="/about" element={<AboutUs />} />
 
+
             {/* Protected Product Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/pickles" element={<Pickles />} />

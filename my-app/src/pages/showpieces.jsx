@@ -1,67 +1,96 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
+import { getAuth } from "firebase/auth";
 import {
   collection,
   getDocs,
   addDoc,
   deleteDoc,
-  doc
+  doc,
+  query,
+  where,
+  serverTimestamp
 } from "firebase/firestore";
-import "../styles/Pickles.css"; // You can rename it or use Showpieces.css
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import "../styles/Pickles.css";
 
 const Showpieces = () => {
   const [showpieces, setShowpieces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [wishlist, setWishlist] = useState({});
+  const [activeItem, setActiveItem] = useState(null);
+  const auth = getAuth();
 
   useEffect(() => {
-    const fetchShowpiecesAndWishlist = async () => {
+    const fetchData = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "showpieces"));
-        const list = snapshot.docs.map(doc => ({
+        setLoading(true);
+        
+        // Fetch showpieces
+        const showpiecesSnapshot = await getDocs(collection(db, "showpieces"));
+        setShowpieces(showpiecesSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        }));
-        setShowpieces(list);
+        })));
 
-        const wishlistSnapshot = await getDocs(collection(db, "wishlist"));
-        const wishlistMap = {};
-        wishlistSnapshot.docs.forEach(doc => {
-          const data = doc.data();
-          if (data.id) {
-            wishlistMap[data.id] = doc.id;
-          }
-        });
-        setWishlist(wishlistMap);
+        // Fetch user's wishlist if logged in
+        if (auth.currentUser) {
+          const wishlistQuery = query(
+            collection(db, "wishlist"),
+            where("userId", "==", auth.currentUser.uid)
+          );
+          const wishlistSnapshot = await getDocs(wishlistQuery);
+          
+          const wishlistMap = {};
+          wishlistSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.productId) {  // Changed from 'id' to 'productId'
+              wishlistMap[data.productId] = doc.id;
+            }
+          });
+          setWishlist(wishlistMap);
+        }
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Fetch error:", error);
+        setError("Failed to load data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchShowpiecesAndWishlist();
-  }, []);
-
-  const handleBuyNow = (item) => {
-    alert(`🛒 You clicked Buy Now for: ${item.name}`);
-  };
+    fetchData();
+  }, [auth.currentUser?.uid]);  // Re-fetch when user changes
 
   const handleAddToCart = async (item) => {
+    if (!auth.currentUser) {
+      setError("Please login to add to cart");
+      return;
+    }
+
+    setActiveItem(item.id);
     try {
       await addDoc(collection(db, "cart"), {
         ...item,
-        addedAt: new Date()
+        userId: auth.currentUser.uid,
+        addedAt: serverTimestamp()
       });
-      alert(`🛍️ ${item.name} added to cart`);
+      alert(`${item.name} added to cart!`);
     } catch (error) {
-      console.error("Add to cart error:", error);
+      console.error("Cart error:", error);
+      setError("Failed to add to cart");
+    } finally {
+      setActiveItem(null);
     }
   };
 
   const toggleWishlist = async (item) => {
-    const wishlistRef = collection(db, "wishlist");
+    if (!auth.currentUser) {
+      setError("Please login to manage wishlist");
+      return;
+    }
+
+    setActiveItem(item.id);
     const existingDocId = wishlist[item.id];
 
     try {
@@ -73,9 +102,11 @@ const Showpieces = () => {
           return updated;
         });
       } else {
-        const docRef = await addDoc(wishlistRef, {
+        const docRef = await addDoc(collection(db, "wishlist"), {
+          productId: item.id,  // Changed from 'id'
+          userId: auth.currentUser.uid,
           ...item,
-          addedAt: new Date()
+          addedAt: serverTimestamp()
         });
         setWishlist(prev => ({
           ...prev,
@@ -84,10 +115,14 @@ const Showpieces = () => {
       }
     } catch (error) {
       console.error("Wishlist error:", error);
+      setError("Wishlist operation failed");
+    } finally {
+      setActiveItem(null);
     }
   };
 
-  if (loading) return <p>Loading Showpieces...</p>;
+  if (loading) return <div className="loading">Loading...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="product-container">
@@ -95,31 +130,25 @@ const Showpieces = () => {
       <div className="product-grid">
         {showpieces.map((item) => (
           <div className="product-card" key={item.id}>
-            <img src={item.imageUrl} alt={item.name} />
+            <img src={item.imageUrl} alt={item.name} loading="lazy" />
             <h3>{item.name}</h3>
             <p>{item.description}</p>
             <p className="product-price">₹{item.price}</p>
-            <p style={{ fontSize: "0.9rem", color: "#888" }}>{item.category}</p>
-
+            
             <div className="button-group">
-              <div className="action-row">
-                <button
-                  onClick={() => handleBuyNow(item)}
-                  className="product-btn buy-now-btn"
-                >
-                  Buy Now
-                </button>
-                <button
-                  onClick={() => handleAddToCart(item)}
-                  className="product-btn cart-btn"
-                >
-                  Add to Cart
-                </button>
-              </div>
+              <button
+                onClick={() => handleAddToCart(item)}
+                disabled={activeItem === item.id}
+                className="product-btn cart-btn"
+              >
+                {activeItem === item.id ? "Adding..." : "Add to Cart"}
+              </button>
+              
               <button
                 onClick={() => toggleWishlist(item)}
+                disabled={activeItem === item.id}
                 className="wishlist-btn"
-                title={wishlist[item.id] ? "Remove from Wishlist" : "Add to Wishlist"}
+                aria-label={wishlist[item.id] ? "Remove from wishlist" : "Add to wishlist"}
               >
                 {wishlist[item.id] ? (
                   <AiFillHeart color="red" size={22} />

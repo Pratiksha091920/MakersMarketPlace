@@ -34,7 +34,7 @@ const Checkout = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const collections = ["pickles", "papads","jams"];
+        const collections = ["pickles", "papads","jams","sweets","jewelary"];
         let foundProduct = null;
 
         for (const collectionName of collections) {

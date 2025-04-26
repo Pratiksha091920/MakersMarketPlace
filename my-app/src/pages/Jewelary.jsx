@@ -4,10 +4,11 @@ import {
   collection,
   getDocs,
   addDoc,
-  query,
-  where,
   deleteDoc,
   doc,
+  query,
+  where,
+  serverTimestamp
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import "../styles/Pickles.css";
@@ -18,44 +19,47 @@ const Jewelry = () => {
   const [jewelryItems, setJewelryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [wishlist, setWishlist] = useState({});
-  const auth = getAuth();
   const navigate = useNavigate();
+  const auth = getAuth();
 
   useEffect(() => {
-    const fetchJewelryAndWishlist = async () => {
+    const fetchData = async () => {
       try {
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user) {
+          setLoading(false);
+          return;
+        }
 
         // Fetch jewelry
-        const snapshot = await getDocs(collection(db, "jewelary"));
-        const items = snapshot.docs.map((doc) => ({
+        const jewelryQuery = query(collection(db, "jewelary"));
+        const jewelrySnapshot = await getDocs(jewelryQuery);
+        const jewelryData = jewelrySnapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data()
         }));
-        setJewelryItems(items);
+        setJewelryItems(jewelryData);
 
-        // Fetch wishlist for current user
-        const q = query(
+        // Fetch wishlist
+        const wishlistQuery = query(
           collection(db, "wishlist"),
           where("userId", "==", user.uid)
         );
-        const wishlistSnapshot = await getDocs(q);
-        const wishlistMap = {};
-        wishlistSnapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          wishlistMap[data.id] = doc.id;
+        const wishlistSnapshot = await getDocs(wishlistQuery);
+        const wishlistItems = {};
+        wishlistSnapshot.forEach(doc => {
+          wishlistItems[doc.data().productId] = doc.id;
         });
-        setWishlist(wishlistMap);
+        setWishlist(wishlistItems);
       } catch (error) {
-        console.error("Error fetching jewelry/wishlist:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchJewelryAndWishlist();
-  }, []);
+    fetchData();
+  }, [auth.currentUser]);
 
   const handleBuyNow = (item) => {
     navigate(`/checkout/${item.id}`);
@@ -64,65 +68,72 @@ const Jewelry = () => {
   const handleAddToCart = async (item) => {
     const user = auth.currentUser;
     if (!user) {
-      alert("Please log in to add to cart.");
+      alert("Please log in to add items to cart");
+      navigate('/login');
       return;
     }
 
     try {
       await addDoc(collection(db, "cart"), {
-        id: item.id,
+        productId: item.id,
         name: item.name,
         price: item.price,
         description: item.description,
         imageUrl: item.imageUrl,
         userId: user.uid,
-        addedAt: new Date(),
+        quantity: 1,
+        addedAt: serverTimestamp()
       });
-      alert(`🛍️ ${item.name} added to cart`);
+      alert(`🛒 ${item.name} added to cart!`);
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("❌ Failed to add to cart.");
+      alert("Failed to add to cart. Please try again.");
     }
   };
 
   const toggleWishlist = async (item) => {
     const user = auth.currentUser;
     if (!user) {
-      alert("Please log in to use wishlist.");
+      alert("Please log in to use wishlist");
+      navigate('/login');
       return;
     }
 
+    const wishlistRef = collection(db, "wishlist");
     const existingDocId = wishlist[item.id];
 
     try {
       if (existingDocId) {
+        // Remove from wishlist
         await deleteDoc(doc(db, "wishlist", existingDocId));
-        setWishlist((prev) => {
+        setWishlist(prev => {
           const updated = { ...prev };
           delete updated[item.id];
           return updated;
         });
       } else {
-        const docRef = await addDoc(collection(db, "wishlist"), {
-          id: item.id,
+        // Add to wishlist
+        const docRef = await addDoc(wishlistRef, {
+          productId: item.id,
           name: item.name,
           price: item.price,
           description: item.description,
           imageUrl: item.imageUrl,
           userId: user.uid,
-          addedAt: new Date(),
+          createdAt: serverTimestamp()
         });
-        setWishlist((prev) => ({
+        setWishlist(prev => ({
           ...prev,
-          [item.id]: docRef.id,
+          [item.id]: docRef.id
         }));
       }
     } catch (error) {
       console.error("Error updating wishlist:", error);
+      alert("Failed to update wishlist. Please try again.");
     }
   };
 
-  if (loading) return <p>Loading Jewelry Products...</p>;
+  if (loading) return <div className="loading">Loading jewelry...</div>;
 
   return (
     <div className="product-container">
@@ -153,11 +164,7 @@ const Jewelry = () => {
               <button
                 onClick={() => toggleWishlist(item)}
                 className="wishlist-btn"
-                title={
-                  wishlist[item.id]
-                    ? "Remove from Wishlist"
-                    : "Add to Wishlist"
-                }
+                aria-label={wishlist[item.id] ? "Remove from wishlist" : "Add to wishlist"}
               >
                 {wishlist[item.id] ? (
                   <AiFillHeart color="red" size={22} />
