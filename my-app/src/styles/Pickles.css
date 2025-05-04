@@ -1,6 +1,6 @@
-/* Container styling */
+
 .product-container {
-  padding: 2rem;
+  padding: 5rem;
   background-color: #f8f8f8;
   width: 100vw;
   box-sizing: border-box;
@@ -106,16 +106,18 @@
 }
 
 /* Ensure full-height layout */
+/* This wraps your whole app/page */
 .page-wrapper {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Space for main content */
+/* Content section grows to fill available space */
 .page-content {
   flex: 1;
 }
+
 
 /* Center empty state text */
 .empty-message {
@@ -127,7 +129,7 @@
 
 /* Orders Container - Desktop Optimization */
 .orders-container {
-  padding: 2rem;
+  padding: 4rem;
   background-color: #f8f8f8;
   width: 100vw;
   box-sizing: border-box;
@@ -292,8 +294,9 @@
 /* Loading spinner (fallback) */
 .loading {
   text-align: center;
-  padding: 4rem;
-  min-height: 100vh; /* <-- This ensures full screen coverage */
+  padding: 9rem;
+  margin-top:120px;
+  height: 100%; /* Let it grow inside page-content */
   display: flex;
   flex-direction: column;
   justify-content: center;
