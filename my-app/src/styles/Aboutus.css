@@ -1,7 +1,7 @@
 .about-us {
     width: 100vw; /* ✅ Full width of viewport */
     min-height: 100vh; /* Ensures it takes full screen height */
-    padding: 40px 0; /* Top & bottom padding */
+    padding: 100px 0; /* Top & bottom padding */
     background-color: #f9f9f9; /* Optional: Light background */
     text-align: center;
     display: flex;
