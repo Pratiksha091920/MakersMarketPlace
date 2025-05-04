@@ -1,24 +1,40 @@
 /* General Reset */
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f8f8f8;
+    position: relative;
 }
 
-/* Navigation Bar */
+/* Navbar */
+/* Navbar */
 header {
+    width: 100%;
+    position: fixed;   /* FIXED instead of sticky */
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    background-color: #ff7043;
+    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #ff7043;
-    color: white;
     padding: 15px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
+
+/* Optional - give space to the content below navbar */
+
+
+header.sticky {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
 
 .logo {
     font-size: 24px;
@@ -50,90 +66,19 @@ nav ul li a:hover {
     border-radius: 5px;
 }
 
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropbtn {
-    background-color: #ff7043;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 12px 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.dropbtn:hover {
-    background-color: #e65100;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%; /* Ensures dropdown appears below button */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    min-width: 220px;
-    padding: 10px 0;
-    text-align: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease-in-out;
-    display: flex;
-    flex-direction: column; /* Ensures vertical layout */
-}
-
-.dropdown-content a {
-    color: black;
-    padding: 12px 20px;
-    text-decoration: none;
-    display: block;
-    font-weight: bold;
-    transition: background 0.3s, color 0.3s;
-    text-align: center; /* Keeps text centered */
-}
-
-.dropdown-content a:hover {
-    background-color: #ff7043;
-    color: white;
-    border-radius: 0;
-}
-
-/* Show dropdown when active */
-.dropdown.active .dropdown-content {
-    display: block;
-}
-
-/* Smooth fade-in effect */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-
-
-
 /* Hero Section */
 .hero {
     text-align: center;
-    background: url('hero.jpeg') no-repeat center center/cover;
+    background: url('https://via.placeholder.com/1200x400') no-repeat center center/cover;
     color: white;
-    padding: 50px 20px;
+    padding: 80px 20px;
+    position: sticky; /* Make hero section sticky */
+    top: 60px; /* Allow space for the navbar */
+    z-index: 500;
 }
 
 .hero h2 {
-    font-size: 32px;
+    font-size: 36px;
     margin-bottom: 10px;
 }
 
@@ -145,13 +90,14 @@ nav ul li a:hover {
 .hero button {
     background-color: #ff7043;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 25px;
     border: none;
     font-size: 16px;
     cursor: pointer;
     border-radius: 5px;
 }
 
+/* Search Bar */
 .search-container {
     display: flex;
     justify-content: center;
@@ -160,9 +106,10 @@ nav ul li a:hover {
     max-width: 400px;
     margin: 20px auto;
     position: relative;
-  }
-  
-  .search-container input {
+    top:50px;
+}
+
+.search-container input {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #4CAF50;
@@ -170,18 +117,21 @@ nav ul li a:hover {
     outline: none;
     font-size: 16px;
     transition: all 0.3s ease-in-out;
-  }
-  
-  .search-container input:focus {
+}
+
+.search-container input:focus {
     border-color: #2E7D32;
     box-shadow: 0 0 8px rgba(46, 125, 50, 0.5);
-  }
-  
+}
 
 /* Product Section */
 .products {
     text-align: center;
-    padding: 30px 20px;
+    padding: 30px 10px;
+    margin: 0 auto; /* Centering the entire product section */
+    position: sticky;
+    top: 140px; /* Allow space for both navbar and hero section */
+    margin-left:0;
 }
 
 .products h2 {
@@ -189,49 +139,174 @@ nav ul li a:hover {
     margin-bottom: 20px;
 }
 
-/* Product Grid */
+/* Product Grid - 4 per row */
 .product-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 items per row */
     gap: 20px;
+    width: 100%; /* Ensures it takes up the full width */
+    max-width: 1200px; /* Prevents overflow */
+    margin: 0 auto;    /* Centers the grid */
+    padding: 0 20px;   /* Adds spacing from sides */
+    box-sizing: border-box; /* Includes padding/border in width */
+}
+/* Main container */
+.customer-dashboard {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 250px;  /* Set a fixed width for sidebar */
+    background-color: #2c3e50;
+    color: #fff;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 20px;
+  }
+  
+  /* Dashboard Content Area */
+  .dashboard-content {
+    margin-left: 250px;
+    padding: 120px 20px 20px; /* ⬅️ increase top padding */
+    width: 100%;
+    max-width: calc(100% - 250px);
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  
+
+  
+  /* Ensure product list does not overflow */
+  .dashboard-content .product-list {
+    width: 100%;
+    max-width: 100%; /* Ensure product list doesn't overflow */
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+  
+  @media (max-width: 1024px) {
+    .customer-dashboard {
+      flex-direction: column; /* Stack sidebar and content vertically on smaller screens */
+    }
+  
+    .sidebar {
+      width: 100%;
+      top:80px;
+      position: relative;
+      height: auto; /* Allow the sidebar to expand with content */
+      
+    }
+  
+    .dashboard-content {
+      margin-left: 0;  /* Remove margin on smaller screens */
+      margin-top:90px;
+    }
+  }
+
+  .logout-btn {
+    background-color:#ff7043;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    /* transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    height:40px;
+    width:120px;
 }
 
+.logout-btn:hover {
+    background-color: white;
+    color:#ff7043;
+    transform: translateY(-2px);
+}
+  
+
+
+
+/* Responsive grid */
+@media (max-width: 1024px) {
+    .product-list {
+        grid-template-columns: repeat(3, 1fr); /* 3 items per row on tablets */
+    }
+}
+
+@media (max-width: 768px) {
+    .product-list {
+        grid-template-columns: repeat(2, 1fr); /* 2 items per row on smaller tablets */
+    }
+}
+
+@media (max-width: 480px) {
+    .product-list {
+        grid-template-columns: 1fr; /* 1 item per row on small screens (mobile) */
+    }
+}
+
+/* Product Card */
 .product {
     background: white;
-    padding: 15px;
+    padding: 10px;
     border-radius: 10px;
-    width: 250px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-left:0;
+    
 }
 
 .product:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 
 .product img {
     width: 100%;
     border-radius: 10px;
+    margin-bottom: 10px;
 }
+
+.product h3 {
+    font-size: 18px;
+    margin: 10px 0 5px;
+}
+
+.product p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
 .see-more {
     display: inline-block;
     margin-top: 5px;
     font-size: 14px;
-    color: #ff7043;  /* Highlighted color */
-    text-decoration: underline; /* Adds underline */
+    color: #ff7043;
+    text-decoration: underline;
     font-weight: bold;
-    transition: color 0.3s ease;
-    background-color:white;
+    background-color: transparent; /* ✅ ensure no background */
+    border: none; /* ✅ in case it's a button */
+    cursor: pointer;
 }
 
 .see-more:hover {
-    color: #d84315; /* Darker color on hover */
+    color: #e65100; /* Optional: slightly darker on hover */
+    background-color: transparent; /* ✅ prevent dark box */
+    text-decoration: underline;
 }
 
 /* Footer */
-/* Footer Styling */
 footer {
     background-color: #2c3e50;
     color: #fff;
