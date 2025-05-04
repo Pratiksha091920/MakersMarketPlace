@@ -1,28 +1,107 @@
+/* styles/profile.css */
+
+/* Profile wrapper for full-width background */
+*{
+  width:100%;
+  margin:0;
+  padding: 0;
+}
+/* Assuming sidebar is 250px wide */
+
+.profile-wrapper {
+  margin-left: 250px; /* Space for sidebar */
+  padding: 60px 20px;
+  background-color: #f8f8f8;
+  min-height: 100vh;
+  width: calc(100% - 250px); /* Fill remaining space */
+  box-sizing: border-box;
+}
+
+
+/* Profile container - card style with shadow */
 .profile-container {
-    width: 100vw;
-    min-height: 100vh;
-    padding: 40px 20px;
-    background: linear-gradient(to right, #fdfbfb, #ebedee);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+  width: 80%; /* Full width of the screen */
+  max-width: 100%; /* Ensure no max-width is limiting the layout */
+  margin: 0 auto;
+  padding: 50px;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   
+}
+
+.profile-container h2 {
+  margin-bottom: 30px;
+  font-size: 28px;
+  color: #333;
+  border-bottom: 2px solid #f07c3c;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f07c3c;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.profile-card p {
+  margin: 5px 0;
+  font-size: 16px;
+  color: #555;
+}
+
+.profile-card strong {
+  color: #000;
+}
+
+/* Button styling */
+button {
+  margin-top: 20px;
+  padding: 10px 24px;
+  background-color: #f07c3c;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #d95e14;
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-container {
+    max-width: 100%;
+    padding: 20px;
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
   .profile-container h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: #444;
+    font-size: 24px;
   }
-  
-  .profile-card {
-    background: #fff;
-    width: 90%;
-    max-width: 500px;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    color: #333;
-    font-size: 1rem;
-    line-height: 1.6;
+
+  .profile-card p {
+    font-size: 14px;
   }
-  
+}
