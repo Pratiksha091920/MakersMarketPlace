@@ -8,7 +8,6 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedOrder, setExpandedOrder] = useState(null);
   const auth = getAuth();
 
   const fetchOrders = async () => {
@@ -23,13 +22,12 @@ const Orders = () => {
       setLoading(true);
       setError(null);
 
-      // Query orders collection
       const q = query(
         collection(db, "orders"),
         where("userId", "==", user.uid),
         orderBy("orderedAt", "desc")
       );
-      
+
       const querySnapshot = await getDocs(q);
       const ordersData = querySnapshot.docs.map(doc => {
         const data = doc.data();
@@ -73,16 +71,12 @@ const Orders = () => {
       delivered: "status-delivered",
       cancelled: "status-cancelled"
     };
-    
+
     return (
       <span className={`status-badge ${statusClasses[status] || "status-default"}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
-  };
-
-  const toggleOrderDetails = (orderId) => {
-    setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
   return (
@@ -112,47 +106,40 @@ const Orders = () => {
         <div className="orders-list">
           {orders.map((order) => (
             <div className="order-card" key={order.id}>
-              <div className="order-summary" onClick={() => toggleOrderDetails(order.id)}>
-                <div className="order-info">
-                  <span className="order-id">Order #{order.id.substring(0, 8)}</span>
-                  <span className="order-date">{order.formattedDate}</span>
-                  <span className="order-price">₹{order.price.toFixed(2)}</span>
-                  {formatStatus(order.status)}
-                </div>
-                <button className="toggle-btn">
-                  {expandedOrder === order.id ? "▲" : "▼"}
-                </button>
+              <div className="order-header">
+                <span className="order-id">Order #{order.id.substring(0, 8)}</span>
+                <span className="order-date">{order.formattedDate}</span>
+                <span className="order-price">₹{order.price.toFixed(2)}</span>
+                {formatStatus(order.status)}
               </div>
 
-              {expandedOrder === order.id && (
-                <div className="order-details">
-                  <div className="product-info">
-                    <img src={order.imageUrl} alt={order.productName} className="product-image" />
-                    <div>
-                      <h3>{order.productName}</h3>
-                      <p>Product ID: {order.productId}</p>
-                    </div>
-                  </div>
-
-                  <div className="shipping-info">
-                    <h4>Shipping Details</h4>
-                    <p>
-                      <strong>{order.customerName}</strong><br />
-                      {order.address}<br />
-                      {order.city}<br />
-                      Phone: {order.phone}
-                    </p>
-                  </div>
-
-                  <div className="payment-info">
-                    <h4>Payment Information</h4>
-                    <p>
-                      Method: {order.paymentMethod}<br />
-                      Status: {formatStatus(order.status)}
-                    </p>
+              <div className="order-details">
+                <div className="product-info">
+                  <img src={order.imageUrl} alt={order.productName} className="product-image" />
+                  <div>
+                    <h3>{order.productName}</h3>
+                    <p>Product ID: {order.productId}</p>
                   </div>
                 </div>
-              )}
+
+                <div className="shipping-info">
+                  <h4>Shipping Details</h4>
+                  <p>
+                    <strong>{order.customerName}</strong><br />
+                    {order.address}<br />
+                    {order.city}<br />
+                    Phone: {order.phone}
+                  </p>
+                </div>
+
+                <div className="payment-info">
+                  <h4>Payment Information</h4>
+                  <p>
+                    Method: {order.paymentMethod}<br />
+                    Status: {formatStatus(order.status)}
+                  </p>
+                </div>
+              </div>
             </div>
           ))}
         </div>

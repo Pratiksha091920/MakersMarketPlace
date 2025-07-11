@@ -5,7 +5,7 @@
   color: white;
   padding: 20px;
   position: fixed; /* Keeps it in place */
-  top: 60px; /* Start below navbar */
+  top: 70px; /* Start below navbar */
   left: 0;
   bottom: 0; /* Stop at the footer */
   height: calc(100vh - 60px); /* Full height minus navbar */

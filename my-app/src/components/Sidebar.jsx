@@ -10,7 +10,7 @@ const Sidebar = () => {
         <li><Link to="/orders">📦 My Orders</Link></li>
         <li><Link to="/wishlist">❤️ Wishlist</Link></li>
         <li><Link to="/cart">🛒 Cart</Link></li>  {/* ✅ Added Cart Option */}
-        <li><Link to="/profile">👤 Profile</Link></li>
+        {/* <li><Link to="/profile">👤profile </Link></li> */}
       </ul>
     </aside>
   );

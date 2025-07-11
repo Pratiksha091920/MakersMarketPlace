@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { getAuth } from "firebase/auth";
 import {
   collection,
   getDocs,
@@ -9,146 +8,151 @@ import {
   doc,
   query,
   where,
-  serverTimestamp
 } from "firebase/firestore";
-import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import { getAuth } from "firebase/auth";
 import "../styles/Pickles.css";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 
 const Showpieces = () => {
-  const [showpieces, setShowpieces] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState({});
-  const [activeItem, setActiveItem] = useState(null);
+  const navigate = useNavigate();
   const auth = getAuth();
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch showpieces
-        const showpiecesSnapshot = await getDocs(collection(db, "showpieces"));
-        setShowpieces(showpiecesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })));
+      const user = auth.currentUser;
+      if (!user) return;
 
-        // Fetch user's wishlist if logged in
-        if (auth.currentUser) {
-          const wishlistQuery = query(
-            collection(db, "wishlist"),
-            where("userId", "==", auth.currentUser.uid)
-          );
-          const wishlistSnapshot = await getDocs(wishlistQuery);
-          
-          const wishlistMap = {};
-          wishlistSnapshot.docs.forEach(doc => {
-            const data = doc.data();
-            if (data.productId) {  // Changed from 'id' to 'productId'
-              wishlistMap[data.productId] = doc.id;
-            }
-          });
-          setWishlist(wishlistMap);
-        }
+      try {
+        const showpiecesSnapshot = await getDocs(collection(db, "showpieces"));
+        const showpieceList = showpiecesSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setProducts(showpieceList);
+
+        const wishlistQuery = query(
+          collection(db, "wishlist"),
+          where("userId", "==", user.uid)
+        );
+        const wishlistSnapshot = await getDocs(wishlistQuery);
+        const wishlistMap = {};
+        wishlistSnapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          wishlistMap[data.id] = doc.id;
+        });
+        setWishlist(wishlistMap);
       } catch (error) {
-        console.error("Fetch error:", error);
-        setError("Failed to load data");
-      } finally {
-        setLoading(false);
+        console.error("Error loading data:", error);
       }
     };
 
     fetchData();
-  }, [auth.currentUser?.uid]);  // Re-fetch when user changes
+  }, []);
+
+  const handleBuyNow = (item) => {
+    navigate(`/checkout/${item.id}`);
+  };
 
   const handleAddToCart = async (item) => {
-    if (!auth.currentUser) {
-      setError("Please login to add to cart");
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Please log in to add to cart.");
       return;
     }
 
-    setActiveItem(item.id);
     try {
       await addDoc(collection(db, "cart"), {
-        ...item,
-        userId: auth.currentUser.uid,
-        addedAt: serverTimestamp()
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        category: item.category,
+        userId: user.uid,
+        addedAt: new Date(),
       });
-      alert(`${item.name} added to cart!`);
+      alert(`${item.name} added to cart`);
     } catch (error) {
-      console.error("Cart error:", error);
-      setError("Failed to add to cart");
-    } finally {
-      setActiveItem(null);
+      console.error("Failed to add to cart:", error);
     }
   };
 
   const toggleWishlist = async (item) => {
-    if (!auth.currentUser) {
-      setError("Please login to manage wishlist");
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Please log in to manage wishlist.");
       return;
     }
 
-    setActiveItem(item.id);
     const existingDocId = wishlist[item.id];
 
     try {
       if (existingDocId) {
         await deleteDoc(doc(db, "wishlist", existingDocId));
-        setWishlist(prev => {
+        setWishlist((prev) => {
           const updated = { ...prev };
           delete updated[item.id];
           return updated;
         });
       } else {
         const docRef = await addDoc(collection(db, "wishlist"), {
-          productId: item.id,  // Changed from 'id'
-          userId: auth.currentUser.uid,
-          ...item,
-          addedAt: serverTimestamp()
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          category: item.category,
+          userId: user.uid,
+          addedAt: new Date(),
         });
-        setWishlist(prev => ({
+        setWishlist((prev) => ({
           ...prev,
-          [item.id]: docRef.id
+          [item.id]: docRef.id,
         }));
       }
     } catch (error) {
-      console.error("Wishlist error:", error);
-      setError("Wishlist operation failed");
-    } finally {
-      setActiveItem(null);
+      console.error("Failed to update wishlist:", error);
     }
   };
-
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="product-container">
       <h2>Our Handmade Showpieces</h2>
       <div className="product-grid">
-        {showpieces.map((item) => (
+        {products.map((item) => (
           <div className="product-card" key={item.id}>
-            <img src={item.imageUrl} alt={item.name} loading="lazy" />
+            <img src={item.imageUrl} alt={item.name} />
             <h3>{item.name}</h3>
             <p>{item.description}</p>
             <p className="product-price">₹{item.price}</p>
-            
+            <p className="product-category">{item.category}</p>
+
             <div className="button-group">
+              <div className="action-row">
+                <button
+                  className="product-btn buy-now-btn"
+                  onClick={() => handleBuyNow(item)}
+                >
+                  Buy Now
+                </button>
+                <button
+                  className="product-btn cart-btn"
+                  onClick={() => handleAddToCart(item)}
+                >
+                  Add to Cart
+                </button>
+              </div>
               <button
-                onClick={() => handleAddToCart(item)}
-                disabled={activeItem === item.id}
-                className="product-btn cart-btn"
-              >
-                {activeItem === item.id ? "Adding..." : "Add to Cart"}
-              </button>
-              
-              <button
-                onClick={() => toggleWishlist(item)}
-                disabled={activeItem === item.id}
                 className="wishlist-btn"
-                aria-label={wishlist[item.id] ? "Remove from wishlist" : "Add to wishlist"}
+                onClick={() => toggleWishlist(item)}
+                title={
+                  wishlist[item.id]
+                    ? "Remove from Wishlist"
+                    : "Add to Wishlist"
+                }
               >
                 {wishlist[item.id] ? (
                   <AiFillHeart color="red" size={22} />

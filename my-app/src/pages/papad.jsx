@@ -1,4 +1,3 @@
-// Papad.jsx
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import {
@@ -9,14 +8,15 @@ import {
   doc,
   query,
   where,
+  serverTimestamp
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import "../styles/pickles.css";
+import "../styles/Pickles.css";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 
 const Papad = () => {
-  const [papads, setPapads] = useState([]);
+  const [papadItems, setPapadItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [wishlist, setWishlist] = useState({});
   const navigate = useNavigate();
@@ -26,97 +26,151 @@ const Papad = () => {
     const fetchData = async () => {
       try {
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user) {
+          setLoading(false);
+          return;
+        }
 
-        const snapshot = await getDocs(collection(db, "papads"));
-        const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setPapads(items);
+        // Fetch papad
+        const papadQuery = query(collection(db, "papads"));
+        const papadSnapshot = await getDocs(papadQuery);
+        const papadData = papadSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setPapadItems(papadData);
 
-        const q = query(collection(db, "wishlist"), where("userId", "==", user.uid));
-        const wishlistSnapshot = await getDocs(q);
-        const wishlistMap = {};
-        wishlistSnapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          wishlistMap[data.id] = doc.id;
+        // Fetch wishlist
+        const wishlistQuery = query(
+          collection(db, "wishlist"),
+          where("userId", "==", user.uid)
+        );
+        const wishlistSnapshot = await getDocs(wishlistQuery);
+        const wishlistItems = {};
+        wishlistSnapshot.forEach(doc => {
+          wishlistItems[doc.data().productId] = doc.id;
         });
-        setWishlist(wishlistMap);
-      } catch (err) {
-        console.error("Error:", err);
+        setWishlist(wishlistItems);
+      } catch (error) {
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
 
-  const handleBuyNow = (papad) => {
-    navigate(`/checkout/${papad.id}`);
+    fetchData();
+  }, [auth.currentUser]);
+
+  const handleBuyNow = (item) => {
+    navigate(`/checkout/${item.id}`);
   };
 
-  const handleAddToCart = async (papad) => {
+  const handleAddToCart = async (item) => {
     const user = auth.currentUser;
-    if (!user) return alert("Please log in to add to cart.");
+    if (!user) {
+      alert("Please log in to add items to cart");
+      navigate('/login');
+      return;
+    }
+
     try {
       await addDoc(collection(db, "cart"), {
-        ...papad,
+        productId: item.id,
+        name: item.name,
+        price: item.price,
+        description: item.description,
+        imageUrl: item.imageUrl,
         userId: user.uid,
-        addedAt: new Date(),
+        quantity: 1,
+        addedAt: serverTimestamp()
       });
-      alert(`🛒 ${papad.name} added to cart`);
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to add to cart.");
+      alert(`🛒 ${item.name} added to cart!`);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Failed to add to cart. Please try again.");
     }
   };
 
-  const toggleWishlist = async (papad) => {
+  const toggleWishlist = async (item) => {
     const user = auth.currentUser;
-    if (!user) return alert("Please log in to use wishlist.");
+    if (!user) {
+      alert("Please log in to use wishlist");
+      navigate('/login');
+      return;
+    }
+
     const wishlistRef = collection(db, "wishlist");
-    const existingId = wishlist[papad.id];
+    const existingDocId = wishlist[item.id];
+
     try {
-      if (existingId) {
-        await deleteDoc(doc(db, "wishlist", existingId));
-        setWishlist((prev) => {
+      if (existingDocId) {
+        // Remove from wishlist
+        await deleteDoc(doc(db, "wishlist", existingDocId));
+        setWishlist(prev => {
           const updated = { ...prev };
-          delete updated[papad.id];
+          delete updated[item.id];
           return updated;
         });
       } else {
+        // Add to wishlist
         const docRef = await addDoc(wishlistRef, {
-          ...papad,
+          productId: item.id,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          imageUrl: item.imageUrl,
           userId: user.uid,
-          addedAt: new Date(),
+          createdAt: serverTimestamp()
         });
-        setWishlist((prev) => ({
+        setWishlist(prev => ({
           ...prev,
-          [papad.id]: docRef.id,
+          [item.id]: docRef.id
         }));
       }
-    } catch (err) {
-      console.error("Wishlist error:", err);
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      alert("Failed to update wishlist. Please try again.");
     }
   };
 
-  if (loading) return <p>Loading Products...</p>;
+  if (loading) return <div className="loading">Loading papads...</div>;
 
   return (
     <div className="product-container">
-      <h2>Our Crispy Papads</h2>
+      <h2>Homemade Papad Collection</h2>
       <div className="product-grid">
-        {papads.map((papad) => (
-          <div className="product-card" key={papad.id}>
-            <img src={papad.imageUrl} alt={papad.name} />
-            <h3>{papad.name}</h3>
-            <p>{papad.description}</p>
-            <p className="product-price">₹{papad.price}</p>
+        {papadItems.map((item) => (
+          <div className="product-card" key={item.id}>
+            <img src={item.imageUrl} alt={item.name} />
+            <h3>{item.name}</h3>
+            <p>{item.description}</p>
+            <p className="product-price">₹{item.price}</p>
+
             <div className="button-group">
               <div className="action-row">
-                <button onClick={() => handleBuyNow(papad)} className="product-btn buy-now-btn">Buy Now</button>
-                <button onClick={() => handleAddToCart(papad)} className="product-btn cart-btn">Add to Cart</button>
+                <button
+                  onClick={() => handleBuyNow(item)}
+                  className="product-btn buy-now-btn"
+                >
+                  Buy Now
+                </button>
+                <button
+                  onClick={() => handleAddToCart(item)}
+                  className="product-btn cart-btn"
+                >
+                  Add to Cart
+                </button>
               </div>
-              <button onClick={() => toggleWishlist(papad)} className="wishlist-btn">
-                {wishlist[papad.id] ? <AiFillHeart color="red" size={22} /> : <AiOutlineHeart color="gray" size={22} />}
+              <button
+                onClick={() => toggleWishlist(item)}
+                className="wishlist-btn"
+                aria-label={wishlist[item.id] ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                {wishlist[item.id] ? (
+                  <AiFillHeart color="red" size={22} />
+                ) : (
+                  <AiOutlineHeart color="gray" size={22} />
+                )}
               </button>
             </div>
           </div>
