@@ -1,44 +1,45 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { useAuth } from "../context/AuthContext";  // ✅ Correct
-import "../styles/Home.css"; // Ensure styling is applied
+import "../styles/Home.css";
 
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // For hamburger toggle
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Listen to authentication state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
 
-    return () => unsubscribe(); // Cleanup listener
+    return () => unsubscribe();
   }, []);
 
-  // Logout function
   const handleLogout = async () => {
     try {
       await signOut(auth);
       alert("Logged out successfully!");
-      navigate("/login"); // Redirect to login after logout
+      navigate("/login");
     } catch (error) {
       console.error("Logout Error:", error);
     }
   };
 
-  // Conditionally render Home link based on user login state
   const renderHomeLink = () => {
     if (!user) {
       return (
         <li>
-          <Link to="/">Home</Link>
+          <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
         </li>
       );
     }
+  };
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
   };
 
   return (
@@ -46,12 +47,16 @@ const Navbar = () => {
       <div className="logo">
         <Link to="/">Makers Marketplace</Link>
       </div>
-      
-      <nav>
+
+      {/* Hamburger Menu Icon */}
+      <button className="menu-toggle" onClick={toggleMenu}>
+        ☰
+      </button>
+
+      <nav className={menuOpen ? "active" : ""}>
         <ul className="nav-list">
           {renderHomeLink()}
 
-          {/* Dropdown for Categories */}
           <li
             className="dropdown"
             onMouseEnter={() => setDropdownOpen(true)}
@@ -62,27 +67,28 @@ const Navbar = () => {
             </span>
             {dropdownOpen && (
               <ul className="dropdown-menu">
-                <li><Link to="/pickles">Homemade Pickles</Link></li>
-                <li><Link to="/papad">Homemade Papad</Link></li>
-                <li><Link to="/jams">Homemade Jams</Link></li>
-                <li><Link to="/jewelry">Handmade Jewelry</Link></li>
-                <li><Link to="/clothes">Handmade Clothes</Link></li>
-                <li><Link to="/showpiece">Handmade Showpiece</Link></li>
-                <li><Link to="/bags">Handmade Bags</Link></li>
+                <li><Link to="/pickles" onClick={() => setMenuOpen(false)}>Homemade Pickles</Link></li>
+                <li><Link to="/papad" onClick={() => setMenuOpen(false)}>Homemade Papad</Link></li>
+                <li><Link to="/jams" onClick={() => setMenuOpen(false)}>Homemade Jams</Link></li>
+                <li><Link to="/jewelry" onClick={() => setMenuOpen(false)}>Handmade Jewelry</Link></li>
+                <li><Link to="/clothes" onClick={() => setMenuOpen(false)}>Handmade Clothes</Link></li>
+                <li><Link to="/showpiece" onClick={() => setMenuOpen(false)}>Handmade Showpiece</Link></li>
+                <li><Link to="/bags" onClick={() => setMenuOpen(false)}>Handmade Bags</Link></li>
               </ul>
             )}
           </li>
 
           <li>
-            <Link to="/about">About Us</Link>
+            <Link to="/about" onClick={() => setMenuOpen(false)}>About Us</Link>
           </li>
 
-          {/* Show "Logout" if user is logged in, otherwise show "Login" */}
           <li>
             {user ? (
-              <button className="logout-btn" onClick={handleLogout}>Logout</button>
+              <button className="logout-btn" onClick={() => { handleLogout(); setMenuOpen(false); }}>
+                Logout
+              </button>
             ) : (
-              <Link to="/login">Login</Link>
+              <Link to="/login" onClick={() => setMenuOpen(false)}>Login</Link>
             )}
           </li>
         </ul>

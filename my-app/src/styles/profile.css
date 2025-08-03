@@ -1,5 +1,4 @@
-/* styles/profile.css */
-
+/* Wrapper */
 .profile-wrapper {
   display: flex;
   justify-content: center;
@@ -9,6 +8,7 @@
   padding: 20px;
 }
 
+/* Container */
 .profile-container {
   background: white;
   padding: 30px 40px;
@@ -17,8 +17,10 @@
   text-align: center;
   max-width: 400px;
   width: 100%;
+  box-sizing: border-box;
 }
 
+/* Profile Card */
 .profile-card {
   display: flex;
   flex-direction: column;
@@ -31,6 +33,7 @@
   color: #333;
 }
 
+/* Logout Button */
 .profile-logout-button {
   background-color: #dc3545;
   color: white;
@@ -45,4 +48,21 @@
 
 .profile-logout-button:hover {
   background-color: #c82333;
+}
+
+/* ✅ Responsive Tweaks */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .profile-card p {
+    font-size: 1rem;
+  }
+
+  .profile-logout-button {
+    padding: 10px 15px;
+    font-size: 0.95rem;
+  }
 }

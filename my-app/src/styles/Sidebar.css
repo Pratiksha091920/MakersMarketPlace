@@ -1,29 +1,29 @@
-/* Sidebar */
+/* Sidebar Base Style */
 .sidebar {
   width: 250px;
-  background: gray;
+  background: #444;
   color: white;
   padding: 20px;
-  position: fixed; /* Keeps it in place */
-  top: 70px; /* Start below navbar */
+  position: fixed;
+  top: 70px;
   left: 0;
-  bottom: 0; /* Stop at the footer */
-  height: calc(100vh - 60px); /* Full height minus navbar */
+  bottom: 0;
+  height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  overflow: hidden; /* Prevent scrolling */
-}
-
-/* Sidebar Content */
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  flex-grow: 1; /* Fills available space */
-  overflow-y: auto; /* Allows scrolling only if content exceeds height */
+  transform: translateX(0);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
 }
 
 /* Sidebar Items */
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 .sidebar ul li {
   padding: 12px;
   border-radius: 5px;
@@ -31,7 +31,7 @@
 }
 
 .sidebar ul li:hover {
-  background: #0056b3;
+  background: #666;
 }
 
 .sidebar ul li a {
@@ -40,24 +40,33 @@
   display: block;
 }
 
-/* Ensure footer is NOT covered */
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
+/* Toggle Button */
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background-color: #222;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  font-size: 1.4rem;
+  border-radius: 4px;
+  z-index: 1100;
+  cursor: pointer;
 }
 
-.dashboard-content {
-  flex-grow: 1;
-  margin-left: 270px; /* Offset for sidebar */
-  padding: 20px;
-}
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
 
-footer {
-  background-color: #2c3e50;
-  color: white;
-  text-align: center;
-  padding: 20px;
-  position: relative;
-  width: 100%;
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .menu-toggle {
+    display: block;
+  }
 }

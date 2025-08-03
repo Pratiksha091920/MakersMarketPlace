@@ -1,99 +1,134 @@
-/* Background Container */
 .register-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    width: 100vw;
-    background: linear-gradient(135deg, #f3f4f6, #d6dbe0); /* Soft Gradient */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #f3f4f6, #d6dbe0);
+  padding: 20px;
 }
 
-/* Registration Box */
 .register-box {
-    background: rgba(255, 255, 255, 0.85); /* Light Glassmorphism Effect */
-    backdrop-filter: blur(12px);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 400px;
-    max-width: 90%;
-    animation: fadeIn 0.8s ease-in-out forwards;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  padding: 30px 25px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 420px;
+  animation: fadeIn 0.7s ease-in-out forwards;
 }
 
-/* Fade-in Animation */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Input Group Styling */
 .input-group {
-    margin-bottom: 15px;
-    text-align: left;
+  margin-bottom: 18px;
+  text-align: left;
 }
 
 .input-group label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
-    color: #333;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+  color: #333;
 }
 
 .input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background: #fff;
-    outline: none;
-    transition: 0.3s;
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  transition: all 0.3s;
 }
 
-/* Input Focus Effect */
 .input-group input:focus {
-    border-color: #ff7043;
-    box-shadow: 0 0 8px rgba(255, 112, 67, 0.5);
+  border-color: #ff7043;
+  box-shadow: 0 0 8px rgba(255, 112, 67, 0.4);
+  outline: none;
 }
 
-/* Register Button */
 .register-btn {
-    width: 100%;
-    padding: 12px;
-    background: #ff7043;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
+  width: 100%;
+  padding: 12px;
+  background-color: #ff7043;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 .register-btn:hover {
-    background: #e64a19;
+  background-color: #e64a19;
 }
 
-/* Login Text */
 .login-text {
-    margin-top: 15px;
-    font-size: 14px;
-    color: #333;
+  margin-top: 18px;
+  font-size: 14px;
+  color: #444;
+  text-align: center;
 }
 
 .login-text a {
-    color: #ff7043;
-    font-weight: bold;
-    text-decoration: none;
+  color: #ff7043;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .login-text a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
+}
+
+/* ✅ Responsive Media Queries */
+@media (max-width: 768px) {
+  .register-box {
+    padding: 25px 20px;
+    border-radius: 16px;
+  }
+
+  .input-group input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .register-btn {
+    padding: 10px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-box {
+    padding: 20px 15px;
+    border-radius: 14px;
+  }
+
+  .input-group label {
+    font-size: 14px;
+  }
+
+  .input-group input {
+    font-size: 13.5px;
+    padding: 9px;
+  }
+
+  .register-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .login-text {
+    font-size: 13px;
+  }
 }
